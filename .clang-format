@@ -1,0 +1,4 @@
+# Config file to adjust rules as necessary.
+# See: https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+BasedOnStyle: Google
+ColumnLimit: 100
