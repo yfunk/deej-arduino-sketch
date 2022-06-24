@@ -22,7 +22,7 @@ const int ANALOG_INPUTS[] = {A0};
  * The list of calibration data points has to be sorted in ascending order by the first number of
  * the tuple.
  * 
- * The default values match cheap 60 mm B130 'linear' sliding potentiometers.
+ * The default values match cheap 60 mm B130 linear sliding potentiometers.
  */
 const int CALIBRATION_DATA[][2] = {
   {0, 0}, {16, 85}, {42, 171}, {122, 256}, {264, 341}, {407, 426}, {544, 512}, {678, 597}, {813, 682}, {952, 767}, {998, 853}, {1020, 938}, {1023, 1023}
@@ -59,7 +59,7 @@ void loop() {
 void updateSliderValues() {
   for (int i = 0; i < NUM_SLIDERS; i++) {
     int inputValue = analogRead(ANALOG_INPUTS[i]);  
-    analogSliderValues[i] = mapValue(inputValue);
+    analogSliderValues[i] = interpolateValue(inputValue);
   }
 }
 
@@ -77,20 +77,20 @@ void sendSliderValues() {
   Serial.println(serialString);
 }
 
-int mapValue(int val)
+int interpolateValue(int val)
 {
-  // make sure the value is within range, otherwise return limits
+  // make sure the value is within range, otherwise return nearest limit
   if (val <= CALIBRATION_DATA[0][0]) return CALIBRATION_DATA[0][1];
   if (val >= CALIBRATION_DATA[NUM_CAL_POINTS-1][0]) return CALIBRATION_DATA[NUM_CAL_POINTS-1][1];
 
-  // search until 
-  uint8_t pos = 1; // MAP[0][0] already tested
+  // search calibration data until we find the nearest (smaller or equal) measured value
+  uint8_t pos = 1; // first calibration point was already tested
   while(val > CALIBRATION_DATA[pos][0]) pos++;
 
-  // this will handle all exact "points" in the _in array
+  // if we hit an exact data point return its expected value
   if (val == CALIBRATION_DATA[pos][0]) return CALIBRATION_DATA[pos][1];
 
-  // interpolate in the right segment for the rest
+  // otherwise interpolate in the right segment
   return (val - CALIBRATION_DATA[pos-1][0]) * (CALIBRATION_DATA[pos][1] - CALIBRATION_DATA[pos-1][1]) / (CALIBRATION_DATA[pos][0] - CALIBRATION_DATA[pos-1][0]) + CALIBRATION_DATA[pos-1][1];
 }
 
