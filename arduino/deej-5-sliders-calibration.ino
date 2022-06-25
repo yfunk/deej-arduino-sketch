@@ -1,15 +1,14 @@
 /**
  * Enable debug mode.
  *
- * Prints additional information useful for debugging and calibrating sliders to serial (e.g. raw
- * and calibrated slider values).
+ * Prints additional information useful for debugging and calibrating sliders to serial.
  */
 // #define DEBUG
 
 /**
  * Analog input definition.
  */
-const int ANALOG_INPUTS[] = {A0};
+const int ANALOG_INPUTS[] = {A0, A1, A2, A3, A4};
 
 /**
  * Slider calibration data.
