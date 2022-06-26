@@ -3,7 +3,7 @@
  *
  * Prints additional information useful for debugging and calibrating sliders to serial.
  */
-// #define DEBUG
+//#define DEBUG
 
 /**
  * Analog input definition.
@@ -98,8 +98,8 @@ int interpolateValue(int val) {
 
 #ifdef DEBUG
 void printSetupDebug() {
-  Serial.println("[DEBUG] Using " + NUM_SLIDERS + " sliders.");
-  Serial.println("[DEBUG] Calibration data contains " + CALIBRATION_DATA_POINTS + " data points.")
+  Serial.println("[DEBUG] Using " + String(NUM_SLIDERS) + " sliders.");
+  Serial.println("[DEBUG] Calibration data contains " + String(NUM_CAL_POINTS) + " data points.");
 }
 
 void printSliderValuesDebug() {
