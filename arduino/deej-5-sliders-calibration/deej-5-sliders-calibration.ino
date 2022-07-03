@@ -11,11 +11,16 @@
 const int ANALOG_INPUTS[] = {A0, A1, A2, A3, A4};
 
 /**
- * Slider calibration data.
+ * Enable resistance curve calibration.
  *
- * Many cheap sliding potentiometers (e.g. B103) don't have a particularly linear resistance taper,
+ * Many cheap sliding potentiometers (e.g. B103) don't have a particularly linear resistance curve,
  * despite being advertised as such. This can cause the reported to slider value to deviate from its
  * actual position (e.g. physical slider is at 50%, reported value is 30% volume).
+ */
+const bool ENABLE_CALIBRATION = true;
+
+/**
+ * Resistance curve calibration data.
  *
  * Calibration data has to be provided in tuples of {[measured resistance], [expected resistance]}.
  * The list of calibration data points has to be sorted in ascending order by the first number of
@@ -23,14 +28,16 @@ const int ANALOG_INPUTS[] = {A0, A1, A2, A3, A4};
  *
  * The default values match cheap 60 mm B130 linear sliding potentiometers.
  */
-const int CALIBRATION_DATA[][2] = {{0, 0},     {16, 85},    {42, 171},   {122, 256}, {264, 341},
-                                   {407, 426}, {544, 512},  {678, 597},  {813, 682}, {952, 767},
-                                   {998, 853}, {1020, 938}, {1023, 1023}};
+const int CALIBRATION_DATA[][2] = {{13, 0},    {24, 43},   {35, 85},   {46, 128},   {82, 171},
+                                   {137, 213}, {193, 256}, {249, 298}, {306, 341},  {364, 384},
+                                   {421, 426}, {477, 469}, {530, 512}, {584, 554},  {638, 597},
+                                   {690, 639}, {743, 682}, {799, 725}, {855, 767},  {912, 810},
+                                   {967, 853}, {982, 895}, {993, 938}, {1004, 980}, {1008, 1023}};
 
 const int NUM_SLIDERS = sizeof(ANALOG_INPUTS) / sizeof(ANALOG_INPUTS[0]);
 const int NUM_CAL_POINTS = sizeof(CALIBRATION_DATA) / sizeof(CALIBRATION_DATA[0]);
 
-int analogSliderValues[NUM_SLIDERS];
+int rawSliderValues[NUM_SLIDERS];
 
 void setup() {
   for (int i = 0; i < NUM_SLIDERS; i++) {
@@ -40,7 +47,8 @@ void setup() {
   Serial.begin(9600);
 
 #ifdef DEBUG
-  printSetupDebug();
+  Serial.println("[DEBUG] Using " + String(NUM_SLIDERS) + " sliders.");
+  Serial.println("[DEBUG] Calibration data contains " + String(NUM_CAL_POINTS) + " data points.");
 #endif  // DEBUG
 }
 
@@ -58,18 +66,22 @@ void loop() {
 void updateSliderValues() {
   for (int i = 0; i < NUM_SLIDERS; i++) {
     int inputValue = analogRead(ANALOG_INPUTS[i]);
-    analogSliderValues[i] = interpolateValue(inputValue);
+    rawSliderValues[i] = inputValue;
   }
 }
 
 void sendSliderValues() {
-  String serialString = String("");
+  String serialString = "";
 
   for (int i = 0; i < NUM_SLIDERS; i++) {
-    serialString += String((int)analogSliderValues[i]);
+    if (ENABLE_CALIBRATION) {
+      serialString += String(interpolateValue(rawSliderValues[i]));
+    } else {
+      serialString += String(rawSliderValues[i]);
+    }
 
     if (i < NUM_SLIDERS - 1) {
-      serialString += String("|");
+      serialString += "|";
     }
   }
 
@@ -97,20 +109,20 @@ int interpolateValue(int val) {
 }
 
 #ifdef DEBUG
-void printSetupDebug() {
-  Serial.println("[DEBUG] Using " + String(NUM_SLIDERS) + " sliders.");
-  Serial.println("[DEBUG] Calibration data contains " + String(NUM_CAL_POINTS) + " data points.");
-}
-
 void printSliderValuesDebug() {
-  String serialString = String("[DEBUG] ");
+  String serialString = "[DEBUG] ";
 
   for (int i = 0; i < NUM_SLIDERS; i++) {
-    serialString += String((int)analogSliderValues[i]) + "~" +
-                    String(((float)analogSliderValues[i] / (float)1023) * 100) + "%";
+    serialString += String(rawSliderValues[i]);
+
+    if (ENABLE_CALIBRATION) {
+      serialString += "->" + String(interpolateValue(rawSliderValues[i]));
+    }
+
+    serialString += "~" + String(((float)rawSliderValues[i] / (float)1023) * 100) + "%";
 
     if (i < NUM_SLIDERS - 1) {
-      serialString += String("|");
+      serialString += "|";
     }
   }
 
