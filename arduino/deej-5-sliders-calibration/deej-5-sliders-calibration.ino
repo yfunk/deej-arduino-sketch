@@ -14,7 +14,7 @@ const int ANALOG_INPUTS[] = {A0, A1, A2, A3, A4};
  * Enable resistance curve calibration.
  *
  * Many cheap sliding potentiometers (e.g. B103) don't have a particularly linear resistance curve,
- * despite being advertised as such. This can cause the reported to slider value to deviate from its
+ * despite being advertised as such. This can cause the reported slider value to deviate from its
  * actual position (e.g. physical slider is at 50%, reported value is 30% volume).
  */
 const bool ENABLE_CALIBRATION = true;
